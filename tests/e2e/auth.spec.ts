@@ -28,15 +28,41 @@ test.describe('Flujo 1: Seguridad y Autenticación', () => {
     expect(kanbanResponse.status()).toBe(401)
   })
 
-  test('Login exitoso (UI): Renderiza los botones exclusivos de acceso', async ({ page }) => {
+  test('Login UI: muestra solo proveedores configurados', async ({ page }) => {
     await page.goto('/login')
-    
-    // Verificamos que existan estrictamente los botones solicitados
+
     const googleBtn = page.getByTestId('login-google')
     const githubBtn = page.getByTestId('login-github')
+    const googleConfigured = Boolean(
+      process.env.DATABASE_URL &&
+        process.env.NEXTAUTH_SECRET &&
+        process.env.NEXTAUTH_URL &&
+        process.env.GOOGLE_CLIENT_ID &&
+        process.env.GOOGLE_CLIENT_SECRET,
+    )
+    const githubConfigured = Boolean(
+      process.env.DATABASE_URL &&
+        process.env.NEXTAUTH_SECRET &&
+        process.env.NEXTAUTH_URL &&
+        process.env.GITHUB_ID &&
+        process.env.GITHUB_SECRET,
+    )
 
-    await expect(googleBtn).toBeVisible()
-    await expect(githubBtn).toBeVisible()
+    if (googleConfigured) {
+      await expect(googleBtn).toBeVisible()
+    } else {
+      await expect(googleBtn).toHaveCount(0)
+    }
+
+    if (githubConfigured) {
+      await expect(githubBtn).toBeVisible()
+    } else {
+      await expect(githubBtn).toHaveCount(0)
+    }
+
+    if (!googleConfigured && !githubConfigured) {
+      await expect(page.getByRole('status')).toContainText('El acceso no está listo')
+    }
   })
 
   test('Una sesión autenticada puede acceder al dashboard', async ({ page }) => {

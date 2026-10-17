@@ -40,6 +40,13 @@ Configura `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `GITHUB_ID`,
 del proyecto de Vercel para cada entorno que corresponda. Usa la URL de la base PostgreSQL
 del entorno y no la publiques en el repositorio ni en los logs.
 
+Los builds de Preview pueden completarse sin estas variables para no bloquear la revisión
+del pull request. Sin embargo, iniciar sesión y usar el dashboard requiere `DATABASE_URL`,
+`NEXTAUTH_SECRET`, `NEXTAUTH_URL` y las credenciales completas de al menos un proveedor OAuth.
+Sin esa configuración, el login avisa que el acceso no está listo y no ofrece botones que
+fallarían. Antes de probar el sistema desplegado, configura todos los valores en Vercel y
+apunta `DATABASE_URL` a una base de pruebas aislada, no a la base compartida.
+
 La instalación y el build generan el cliente Prisma, pero no ejecutan migraciones ni seed.
 Aplica `npx prisma migrate deploy` de forma controlada contra la base de destino antes de
 desplegar el código que requiera esas migraciones. Nunca ejecutes `prisma:seed` contra
