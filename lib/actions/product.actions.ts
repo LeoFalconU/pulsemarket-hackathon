@@ -9,8 +9,16 @@ import {
   type QueryProductInput,
 } from '@/schemas/product.schema'
 import { revalidatePath } from 'next/cache'
+import { getAuthSession } from '@/lib/session'
+
+async function requireAuthenticatedSession() {
+  if (!(await getAuthSession())) {
+    throw new Error('No autorizado')
+  }
+}
 
 export async function getPaginatedProducts(params: QueryProductInput) {
+  await requireAuthenticatedSession()
   const startedAt = performance.now()
   const validated = QueryProductSchema.parse(params)
   const { page, limit, search, category, sortBy, sortOrder } = validated
@@ -64,6 +72,7 @@ export async function getPaginatedProducts(params: QueryProductInput) {
 }
 
 export async function bulkUpdateCategoryPrices(data: unknown) {
+  await requireAuthenticatedSession()
   const validated = BulkUpdateSchema.parse(data)
   const factor = 1 + validated.pricePercentageChange / 100
 
@@ -91,6 +100,7 @@ export async function bulkUpdateCategoryPrices(data: unknown) {
 }
 
 export async function softDeleteProduct(id: string) {
+  await requireAuthenticatedSession()
   await prisma.product.update({
     where: { id },
     data: {
@@ -103,6 +113,7 @@ export async function softDeleteProduct(id: string) {
 }
 
 export async function createProduct(data: unknown) {
+  await requireAuthenticatedSession()
   const validated = ProductSchema.parse(data)
 
   const product = await prisma.product.create({

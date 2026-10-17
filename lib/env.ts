@@ -2,12 +2,12 @@ import { z } from 'zod'
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1).optional(),
-  NEXTAUTH_SECRET: z.string().min(1).optional(),
+  NEXTAUTH_SECRET: z.string().min(32).optional(),
   NEXTAUTH_URL: z.string().url().optional(),
-  GITHUB_ID: z.string().optional(),
-  GITHUB_SECRET: z.string().optional(),
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GITHUB_ID: z.string().min(1).optional(),
+  GITHUB_SECRET: z.string().min(1).optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
 })
 
 export const env = envSchema.parse({
@@ -19,3 +19,20 @@ export const env = envSchema.parse({
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 })
+
+export const authProviders = {
+  github: Boolean(
+    env.DATABASE_URL &&
+      env.NEXTAUTH_SECRET &&
+      env.NEXTAUTH_URL &&
+      env.GITHUB_ID &&
+      env.GITHUB_SECRET,
+  ),
+  google: Boolean(
+    env.DATABASE_URL &&
+      env.NEXTAUTH_SECRET &&
+      env.NEXTAUTH_URL &&
+      env.GOOGLE_CLIENT_ID &&
+      env.GOOGLE_CLIENT_SECRET,
+  ),
+}
