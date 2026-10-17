@@ -1,9 +1,10 @@
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode
 }) {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -17,5 +18,5 @@ export default function DashboardLayout({
       </nav>
       {children}
     </div>
-  );
+  )
 }
