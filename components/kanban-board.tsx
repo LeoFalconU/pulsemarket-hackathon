@@ -30,9 +30,11 @@ export function KanbanBoard({ initialTasks }: { initialTasks: Task[] }) {
     if (!status) return
     const id = result.draggableId
     const previous = tasks
+    const movedTask = tasks.find((task) => task.id === id)
+    if (!movedTask) return
     const nextStatusTasks = tasks.filter((task) => task.status === status && task.id !== id).sort((a, b) => a.position - b.position)
     const destinationIndex = Math.min(result.destination.index, nextStatusTasks.length)
-    nextStatusTasks.splice(destinationIndex, 0, { ...tasks.find((task) => task.id === id)!, status, position: destinationIndex })
+    nextStatusTasks.splice(destinationIndex, 0, { ...movedTask, status, position: destinationIndex })
     const next = tasks.map((task) => {
       if (task.id === id) return { ...task, status, position: destinationIndex }
       if (task.status === status) {

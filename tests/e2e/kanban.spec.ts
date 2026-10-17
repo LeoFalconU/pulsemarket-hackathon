@@ -8,7 +8,9 @@ test('flujo interactivo: drag and drop persiste el estado del kanban', async ({ 
   const card = page.locator('[data-testid^="kanban-card-"]').first()
   await expect(card).toBeVisible()
   const cardId = await card.getAttribute('data-testid')
-  expect(cardId).toBeTruthy()
+  if (!cardId) {
+    throw new Error('La tarjeta de Kanban no expone data-testid')
+  }
   const initialColumn = card.locator('xpath=ancestor::*[@data-testid and starts-with(@data-testid,"kanban-column-")]')
   const initialStatus = await initialColumn.getAttribute('data-testid')
   const destinationStatus = initialStatus === 'kanban-column-DONE' ? 'TODO' : 'DONE'
@@ -18,4 +20,10 @@ test('flujo interactivo: drag and drop persiste el estado del kanban', async ({ 
 
   await page.reload()
   await expect(page.getByTestId(`kanban-column-${destinationStatus}`).locator(`[data-testid="${cardId}"]`)).toBeVisible()
+
+  const taskId = cardId.replace('kanban-card-', '')
+  const persisted = await page.request.get('/api/kanban')
+  expect(persisted.ok()).toBeTruthy()
+  const payload = (await persisted.json()) as { tasks: Array<{ id: string; status: string }> }
+  expect(payload.tasks.find((task) => task.id === taskId)?.status).toBe(destinationStatus)
 })

@@ -14,27 +14,43 @@ function MetricCard({ title, value, detail }: { title: string; value: string; de
   </article>
 }
 
+function startOfDay(daysAgo: number) {
+  const date = new Date()
+  date.setHours(0, 0, 0, 0)
+  date.setDate(date.getDate() - daysAgo)
+  return date
+}
+
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ page?: string; category?: string; q?: string }> }) {
   const params = await searchParams
   const query = productQuerySchema.parse({ page: params.page, category: params.category || undefined, q: params.q || undefined, pageSize: 20 })
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const from = startOfDay(6 - index)
+    const to = startOfDay(5 - index)
+    return { from, to, label: from.toLocaleDateString('es-MX', { weekday: 'short' }) }
+  })
   const started = performance.now()
-  const [catalog, tasks, salesAgg, customersCount, productsCount, recentSales, dailySales, stockProducts] = await Promise.all([
+  const [catalog, tasks, salesAgg, customersCount, productsCount, recentSales, stockProducts, ...dailyAggregates] = await Promise.all([
     listProductsPaged(query),
     prisma.kanbanTask.findMany({ orderBy: [{ status: 'asc' }, { position: 'asc' }] }),
     prisma.sale.aggregate({ _sum: { total: true }, _count: { _all: true } }),
     prisma.customer.count(),
     prisma.product.count({ where: { isDeleted: false } }),
     prisma.sale.findMany({ take: 6, orderBy: { createdAt: 'desc' }, select: { id: true, total: true, status: true, createdAt: true, product: { select: { name: true } }, customer: { select: { name: true } } } }),
-    prisma.sale.findMany({ where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } }, select: { total: true, createdAt: true } }),
-    prisma.product.findMany({ where: { isDeleted: false }, take: 100, orderBy: { stock: 'asc' }, select: { id: true, name: true, stock: true, sales: { where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }, select: { quantity: true } } } }),
+    prisma.product.findMany({ where: { isDeleted: false }, take: 100, orderBy: { stock: 'asc' }, select: { id: true, name: true, stock: true, sales: { where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }, take: 200, select: { quantity: true } } } }),
+    ...weekDays.map((day) =>
+      prisma.sale.aggregate({
+        where: { createdAt: { gte: day.from, lt: day.to } },
+        _sum: { total: true },
+      }),
+    ),
   ])
   const queryMs = Math.round(performance.now() - started)
   const revenue = Number(salesAgg._sum.total ?? 0)
-  const weekBuckets = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - (6 - index))
-    const amount = dailySales.filter((sale) => new Date(sale.createdAt).toDateString() === date.toDateString()).reduce((sum, sale) => sum + Number(sale.total), 0)
-    return { label: date.toLocaleDateString('es-MX', { weekday: 'short' }), amount }
-  })
+  const weekBuckets = weekDays.map((day, index) => ({
+    label: day.label,
+    amount: Number(dailyAggregates[index]?._sum.total ?? 0),
+  }))
   const maxDailyRevenue = Math.max(1, ...weekBuckets.map((day) => day.amount))
   const inventoryAlerts = stockProducts.map((product) => {
     const sold = product.sales.reduce((sum, sale) => sum + sale.quantity, 0)
@@ -44,7 +60,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 p-5 md:p-8">
     <header className="flex flex-wrap items-end justify-between gap-4">
-      <div><p className="text-sm font-medium text-indigo-600">PULSEMARKET / ANALÍTICA</p><h1 className="mt-1 text-3xl font-bold tracking-tight">Dashboard de negocio</h1><p className="mt-2 text-sm text-zinc-500">Resumen de ventas, clientes e inventario.</p></div>
+      <div><p className="text-sm font-medium text-indigo-600">PULSEMARKET / ANALÍTICA</p><h1 className="mt-1 text-3xl font-bold tracking-tight">Dashboard PulseMarket</h1><p className="mt-2 text-sm text-zinc-500">Dashboard de negocio · resumen de ventas, clientes e inventario.</p></div>
       <Link href="/dashboard/kanban" className="rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-700">Abrir tablero Kanban →</Link>
     </header>
 

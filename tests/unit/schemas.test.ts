@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { kanbanMoveSchema } from '@/lib/validations/kanban'
-import { productCreateSchema, productQuerySchema } from '@/lib/validations/product'
+import { bulkPriceUpdateSchema, productCreateSchema, productQuerySchema } from '@/lib/validations/product'
 
 describe('DTOs Zod', () => {
   it('acepta un producto válido', () => {
@@ -37,5 +37,13 @@ describe('DTOs Zod', () => {
       position: 0,
     })
     expect(parsed.status).toBe('DONE')
+  })
+
+  it('valida un bulk update de precios', () => {
+    const parsed = bulkPriceUpdateSchema.parse({
+      category: 'Hogar',
+      percent: '10',
+    })
+    expect(parsed.percent).toBe(10)
   })
 })
