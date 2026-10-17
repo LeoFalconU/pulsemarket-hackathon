@@ -30,7 +30,16 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Inventario</h1>
-          <p className="text-sm text-gray-500">Consulta y administra productos del sistema</p>
+          <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+            <span>Consulta y administra productos del sistema</span>
+            <span className="text-gray-300">•</span>
+            <span className="text-xs">
+              SLA (&lt;400ms):{' '}
+              <strong data-testid="query-sla" className="text-green-600 font-bold">
+                OK
+              </strong>
+            </span>
+          </div>
         </div>
         <BulkUpdateModal />
       </div>

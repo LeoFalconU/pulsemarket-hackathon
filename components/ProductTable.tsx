@@ -111,7 +111,11 @@ export default function ProductTable({ data }: ProductTableProps) {
               </tr>
             ) : (
               data.products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50/50 transition">
+                <tr
+                  key={product.id}
+                  data-testid="product-row"
+                  className="hover:bg-gray-50/50 transition"
+                >
                   <td className="p-4 font-medium text-gray-900">{product.name}</td>
                   <td className="p-4 text-gray-600">{product.category}</td>
                   <td className="p-4 font-semibold text-gray-900">
