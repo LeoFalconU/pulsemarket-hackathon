@@ -5,7 +5,22 @@ const prisma = new PrismaClient()
 const CATEGORIES = ['Electrónica', 'Ropa', 'Hogar', 'Juguetes', 'Deportes'] as const
 const KANBAN_STATUSES = ['TODO', 'IN_PROGRESS', 'DONE'] as const
 
+function assertLocalSeedTarget() {
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required to run the seed.')
+  }
+
+  const hostname = new URL(databaseUrl).hostname
+  if (!['localhost', '127.0.0.1', '[::1]'].includes(hostname)) {
+    throw new Error(
+      'Refusing to run the destructive seed against a non-local database. Use an isolated local or CI database.',
+    )
+  }
+}
+
 async function main() {
+  assertLocalSeedTarget()
   console.log('Iniciando seed correlacionado (clientes, productos, ventas)...')
 
   await prisma.sale.deleteMany()
