@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function DashboardLayout({
   children,
 }: {
@@ -5,7 +7,14 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Contenedor principal de las vistas del dashboard */}
+      <nav
+        aria-label="Navegación del dashboard"
+        className="flex gap-4 border-b border-gray-200 bg-white px-6 py-4"
+      >
+        <Link href="/dashboard">Dashboard</Link>
+        <Link href="/dashboard/products">Productos</Link>
+        <Link href="/dashboard/kanban">Kanban</Link>
+      </nav>
       {children}
     </div>
   );

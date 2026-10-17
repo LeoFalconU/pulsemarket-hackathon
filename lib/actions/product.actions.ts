@@ -11,6 +11,7 @@ import {
 import { revalidatePath } from 'next/cache'
 
 export async function getPaginatedProducts(params: QueryProductInput) {
+  const startedAt = performance.now()
   const validated = QueryProductSchema.parse(params)
   const { page, limit, search, category, sortBy, sortOrder } = validated
   const skip = (page - 1) * limit
@@ -58,6 +59,7 @@ export async function getPaginatedProducts(params: QueryProductInput) {
     total,
     totalPages: Math.ceil(total / limit),
     currentPage: page,
+    durationMs: Math.round(performance.now() - startedAt),
   }
 }
 

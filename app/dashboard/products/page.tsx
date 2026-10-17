@@ -3,6 +3,8 @@ import ProductTable from '@/components/ProductTable';
 import BulkUpdateModal from '@/components/BulkUpdateModal';
 import { ProductCreateForm } from '@/components/product-forms';
 
+const SLA_THRESHOLD_MS = 400;
+
 interface PageProps {
   searchParams: Promise<{
     page?: string;
@@ -26,6 +28,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     sortOrder: 'desc',
   });
 
+  const slaOk = data.durationMs < SLA_THRESHOLD_MS;
+
   return (
     <main className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
@@ -36,9 +40,15 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             <span className="text-gray-300">•</span>
             <span className="text-xs">
               SLA (&lt;400ms):{' '}
-              <strong data-testid="query-sla" className="text-green-600 font-bold">
-                OK
+              <strong
+                data-testid="query-sla"
+                className={slaOk ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}
+              >
+                {slaOk ? 'OK' : 'LENTO'}
               </strong>
+              <span data-testid="query-time" className="ml-1 text-gray-400">
+                ({data.durationMs} ms)
+              </span>
             </span>
           </div>
         </div>
