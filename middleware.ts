@@ -1,10 +1,11 @@
-import { withAuth } from "next-auth/middleware"
+import { withAuth } from 'next-auth/middleware'
 
 export default withAuth({
   pages: {
-    signIn: "/login", // Redirige aquí si no hay sesión
+    signIn: '/login',
   },
 })
 
-// Protege toda la carpeta /dashboard y sus subrutas
-export const config = { matcher: ["/dashboard/:path*"] }
+export const config = {
+  matcher: ['/dashboard/:path*'],
+}

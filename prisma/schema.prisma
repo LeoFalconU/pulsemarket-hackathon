@@ -1,23 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "mysql" // Usa "mysql" (como en tus prácticas con Docker/Railway) o "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -45,7 +31,8 @@ model Product {
 
   @@index([isDeleted, category])
   @@index([isDeleted, createdAt])
-  @@index([name])
+  @@index([isDeleted, name])
+  @@index([category, isDeleted, createdAt])
 }
 
 model Sale {
@@ -54,10 +41,8 @@ model Sale {
   total      Decimal  @db.Decimal(10, 2)
   status     String   @default("COMPLETED")
   createdAt  DateTime @default(now())
-
   productId  String
   product    Product  @relation(fields: [productId], references: [id])
-
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id])
 
