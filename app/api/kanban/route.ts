@@ -11,6 +11,7 @@ export async function GET() {
 
   const tasks = await prisma.kanbanTask.findMany({
     orderBy: [{ status: 'asc' }, { position: 'asc' }],
+    take: 100,
   })
   return NextResponse.json({ tasks })
 }

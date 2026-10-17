@@ -1,13 +1,13 @@
 import { z } from 'zod'
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().min(1).optional(),
-  NEXTAUTH_SECRET: z.string().min(1).optional(),
-  NEXTAUTH_URL: z.string().url().optional(),
-  GITHUB_ID: z.string().optional(),
-  GITHUB_SECRET: z.string().optional(),
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  DATABASE_URL: z.string().min(1),
+  NEXTAUTH_SECRET: z.string().min(32),
+  NEXTAUTH_URL: z.string().url(),
+  GITHUB_ID: z.string().min(1),
+  GITHUB_SECRET: z.string().min(1),
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
 })
 
 export const env = envSchema.parse({

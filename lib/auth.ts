@@ -6,12 +6,12 @@ import { env } from '@/lib/env'
 export const authOptions: NextAuthOptions = {
   providers: [
     GithubProvider({
-      clientId: env.GITHUB_ID ?? '',
-      clientSecret: env.GITHUB_SECRET ?? '',
+      clientId: env.GITHUB_ID,
+      clientSecret: env.GITHUB_SECRET,
     }),
     GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: env.GOOGLE_CLIENT_SECRET ?? '',
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
   ],
   pages: {

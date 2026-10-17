@@ -27,6 +27,24 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
+## Base de datos y seed
+
+El seed elimina y vuelve a crear registros. Solo se ejecuta si `DATABASE_URL` apunta a
+`localhost`, `127.0.0.1` o `::1`; usa una base local aislada y nunca la conexión compartida
+de Railway. No guardes credenciales de base de datos en el repositorio.
+
+## Despliegue en Vercel con PostgreSQL
+
+Configura `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `GITHUB_ID`,
+`GITHUB_SECRET`, `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en las variables de entorno
+del proyecto de Vercel para cada entorno que corresponda. Usa la URL de la base PostgreSQL
+del entorno y no la publiques en el repositorio ni en los logs.
+
+La instalación y el build generan el cliente Prisma, pero no ejecutan migraciones ni seed.
+Aplica `npx prisma migrate deploy` de forma controlada contra la base de destino antes de
+desplegar el código que requiera esas migraciones. Nunca ejecutes `prisma:seed` contra
+producción o contra una base compartida.
+
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
 ## Deploy on Vercel
