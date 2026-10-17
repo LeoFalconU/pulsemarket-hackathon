@@ -27,6 +27,12 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
+## Base de datos y seed
+
+El seed elimina y vuelve a crear registros. Solo se ejecuta si `DATABASE_URL` apunta a
+`localhost`, `127.0.0.1` o `::1`; usa una base local aislada y nunca la conexión compartida
+de Railway. No guardes credenciales de base de datos en el repositorio.
+
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
 ## Deploy on Vercel

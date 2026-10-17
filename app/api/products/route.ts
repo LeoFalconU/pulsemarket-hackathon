@@ -83,14 +83,25 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const updated = await prisma.$executeRaw`
-    UPDATE "Product"
-    SET
-      price = GREATEST(0.01, ROUND(price * (1 + ${parsed.data.percent} / 100.0), 2)),
-      "updatedAt" = NOW()
-    WHERE category = ${parsed.data.category}
-      AND "isDeleted" = false
-  `
+  const factor = 1 + parsed.data.percent / 100
+  const updated = await prisma.product.updateMany({
+    where: {
+      category: parsed.data.category,
+      isDeleted: false,
+    },
+    data: {
+      price: { multiply: factor },
+    },
+  })
 
-  return NextResponse.json({ updated })
+  await prisma.product.updateMany({
+    where: {
+      category: parsed.data.category,
+      isDeleted: false,
+      price: { lt: 0.01 },
+    },
+    data: { price: 0.01 },
+  })
+
+  return NextResponse.json({ updated: updated.count })
 }

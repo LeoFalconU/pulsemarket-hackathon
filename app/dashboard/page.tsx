@@ -20,7 +20,10 @@ export default async function DashboardPage({
 
   const [catalog, tasks, salesAgg] = await Promise.all([
     listProductsPaged(query),
-    prisma.kanbanTask.findMany({ orderBy: [{ status: 'asc' }, { position: 'asc' }] }),
+    prisma.kanbanTask.findMany({
+      orderBy: [{ status: 'asc' }, { position: 'asc' }],
+      take: 100,
+    }),
     prisma.sale.aggregate({
       _sum: { total: true },
       _count: { _all: true },
