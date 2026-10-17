@@ -28,6 +28,15 @@ test.describe('Flujo 1: Seguridad y Autenticación', () => {
     expect(kanbanResponse.status()).toBe(401)
   })
 
+  test('Rechaza una sesión autenticada fuera del dominio permitido', async ({ page }) => {
+    await signInTestUser(page, 'intruso@example.com')
+    await page.goto('/dashboard')
+    await expect(page).toHaveURL(/.*\/login/)
+
+    const apiResponse = await page.request.get('/api/kanban')
+    expect(apiResponse.status()).toBe(401)
+  })
+
   test('Login UI: muestra solo proveedores configurados', async ({ page }) => {
     await page.goto('/login')
 

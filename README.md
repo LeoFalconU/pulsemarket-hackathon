@@ -36,9 +36,11 @@ de Railway. No guardes credenciales de base de datos en el repositorio.
 ## Despliegue en Vercel con PostgreSQL
 
 Configura `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `GITHUB_ID`,
-`GITHUB_SECRET`, `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en las variables de entorno
-del proyecto de Vercel para cada entorno que corresponda. Usa la URL de la base PostgreSQL
-del entorno y no la publiques en el repositorio ni en los logs.
+`GITHUB_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `AUTHORIZED_EMAIL_DOMAIN`
+en las variables de entorno del proyecto de Vercel para cada entorno que corresponda. El
+dominio permitido por defecto es `@utez.edu.mx`; se valida tanto durante OAuth como en el
+Middleware, APIs y Server Actions. Usa la URL de la base PostgreSQL del entorno y no la
+publiques en el repositorio ni en los logs.
 
 Los builds de Preview pueden completarse sin estas variables para no bloquear la revisión
 del pull request. Sin embargo, iniciar sesión y usar el dashboard requiere `DATABASE_URL`,

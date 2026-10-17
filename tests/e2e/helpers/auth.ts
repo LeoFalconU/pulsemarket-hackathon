@@ -1,7 +1,10 @@
 import { encode } from 'next-auth/jwt'
 import type { Page } from '@playwright/test'
 
-export async function signInTestUser(page: Page) {
+export async function signInTestUser(
+  page: Page,
+  email = 'e2e-user@utez.edu.mx',
+) {
   const secret = process.env.NEXTAUTH_SECRET
   if (!secret) {
     throw new Error('NEXTAUTH_SECRET es requerido para E2E autenticado')
@@ -11,7 +14,7 @@ export async function signInTestUser(page: Page) {
     token: {
       sub: 'e2e-user',
       name: 'Juez E2E',
-      email: 'e2e@pulsemarket.test',
+      email,
     },
     secret,
   })

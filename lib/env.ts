@@ -8,6 +8,10 @@ const envSchema = z.object({
   GITHUB_SECRET: z.string().min(1).optional(),
   GOOGLE_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  AUTHORIZED_EMAIL_DOMAIN: z
+    .string()
+    .regex(/^@[a-z0-9.-]+\.[a-z]{2,}$/i)
+    .default('@utez.edu.mx'),
 })
 
 export const env = envSchema.parse({
@@ -18,6 +22,7 @@ export const env = envSchema.parse({
   GITHUB_SECRET: process.env.GITHUB_SECRET,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  AUTHORIZED_EMAIL_DOMAIN: process.env.AUTHORIZED_EMAIL_DOMAIN,
 })
 
 export const authProviders = {
