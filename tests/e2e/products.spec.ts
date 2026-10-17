@@ -1,44 +1,35 @@
-import { test, expect } from '@playwright/test';
-import { prisma } from '@/lib/prisma';
+import { expect, test } from '@playwright/test'
+import { prisma } from '@/lib/prisma'
+import { signInTestUser } from './helpers/auth'
 
 test.describe('Prueba E2E - Flujo de Productos', () => {
-  test('Debe crear un producto físicamente en la BD y verificar su presencia en la interfaz', async ({ page }) => {
-    const uniqueProductName = `Producto Test E2E - ${Date.now()}`;
+  test('crea un producto desde la UI y verifica persistencia en base de datos', async ({ page }) => {
+    await signInTestUser(page)
+    await page.goto('/dashboard/products')
 
-    // 1. Creación física en la base de datos masiva
-    const createdProduct = await prisma.product.create({
-      data: {
-        name: uniqueProductName,
-        category: 'Electrónica',
-        price: 299.99,
-        stock: 42,
-      },
-    });
+    const uniqueProductName = `Producto Test E2E - ${Date.now()}`
+    await page.getByTestId('product-name').fill(uniqueProductName)
+    await page.getByTestId('product-category').selectOption('Electrónica')
+    await page.getByTestId('product-price').fill('299.99')
+    await page.getByTestId('product-stock').fill('42')
+    await page.getByTestId('product-create').click()
 
-    // 2. Verificación física directa en la BD de Supabase
-    const dbProduct = await prisma.product.findUnique({
-      where: { id: createdProduct.id },
-    });
-    expect(dbProduct).not.toBeNull();
-    expect(dbProduct?.name).toBe(uniqueProductName);
+    await expect(page.getByTestId('product-row').filter({ hasText: uniqueProductName })).toBeVisible({
+      timeout: 10000,
+    })
 
-    // 3. Navegar a la vista de productos
-    await page.goto('/dashboard/products');
-    await page.waitForLoadState('networkidle');
+    const dbProduct = await prisma.product.findFirst({
+      where: { name: uniqueProductName, isDeleted: false },
+    })
+    expect(dbProduct).not.toBeNull()
+    expect(dbProduct?.category).toBe('Electrónica')
+    expect(Number(dbProduct?.price)).toBe(299.99)
 
-    // 4. Buscar el producto recién creado
-    const searchInput = page.getByPlaceholder(/buscar/i);
-    await searchInput.fill(uniqueProductName);
-    
-    // Esperar a que la URL actualice el parámetro de búsqueda y la tabla re-renderice
-    await page.waitForURL((url) => url.searchParams.get('search') === uniqueProductName);
-
-    // 5. Verificar que el producto aparece en la tabla
-    await expect(page.getByText(uniqueProductName)).toBeVisible({ timeout: 10000 });
-
-    // Limpieza posterior de la prueba
-    await prisma.product.delete({
-      where: { id: createdProduct.id },
-    });
-  });
-});
+    if (dbProduct) {
+      await prisma.product.update({
+        where: { id: dbProduct.id },
+        data: { isDeleted: true },
+      })
+    }
+  })
+})

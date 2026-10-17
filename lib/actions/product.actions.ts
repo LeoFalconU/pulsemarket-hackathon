@@ -1,46 +1,43 @@
-'use server';
+'use server'
 
-import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import {
-  ProductSchema,
   BulkUpdateSchema,
+  ProductSchema,
   QueryProductSchema,
-  QueryProductInput,
-} from '@/schemas/product.schema';
-import { revalidatePath } from 'next/cache';
+  type QueryProductInput,
+} from '@/schemas/product.schema'
+import { revalidatePath } from 'next/cache'
 
-// --------------------------------------------------------------------------
-// TAREA 3: Consultas paginadas, filtradas y ordenadas (<400ms)
-// --------------------------------------------------------------------------
 export async function getPaginatedProducts(params: QueryProductInput) {
-  const validated = QueryProductSchema.parse(params);
-  const { page, limit, search, category, sortBy, sortOrder } = validated;
+  const validated = QueryProductSchema.parse(params)
+  const { page, limit, search, category, sortBy, sortOrder } = validated
+  const skip = (page - 1) * limit
 
-  const skip = (page - 1) * limit;
-
-  // Filtro base: Excluir productos borrados lógicamente (Soft Delete)
-  const where: any = {
+  const where: Prisma.ProductWhereInput = {
     isDeleted: false,
-  };
-
-  if (category && category !== 'ALL') {
-    where.category = category;
+    ...(category && category !== 'ALL' ? { category } : {}),
+    ...(search && search.trim() !== ''
+      ? {
+          name: {
+            contains: search.trim(),
+            mode: 'insensitive',
+          },
+        }
+      : {}),
   }
 
-  if (search && search.trim() !== '') {
-    where.name = {
-      contains: search.trim(),
-      mode: 'insensitive',
-    };
+  const orderBy: Prisma.ProductOrderByWithRelationInput = {
+    [sortBy]: sortOrder,
   }
 
-  // Consulta optimizada aprovechando los índices del esquema Prisma
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
       take: limit,
       skip,
-      orderBy: { [sortBy]: sortOrder },
+      orderBy,
       select: {
         id: true,
         name: true,
@@ -51,60 +48,60 @@ export async function getPaginatedProducts(params: QueryProductInput) {
       },
     }),
     prisma.product.count({ where }),
-  ]);
-
-  // Serialización de Decimal a Number/String para Next.js
-  const formattedProducts = products.map((p) => ({
-    ...p,
-    price: Number(p.price),
-  }));
+  ])
 
   return {
-    products: formattedProducts,
+    products: products.map((product) => ({
+      ...product,
+      price: Number(product.price),
+    })),
     total,
     totalPages: Math.ceil(total / limit),
     currentPage: page,
-  };
+  }
 }
 
-// --------------------------------------------------------------------------
-// TAREA 4: Operación Masiva (Bulk Update)
-// --------------------------------------------------------------------------
 export async function bulkUpdateCategoryPrices(data: unknown) {
-  const validated = BulkUpdateSchema.parse(data);
-  const factor = 1 + validated.pricePercentageChange / 100;
+  const validated = BulkUpdateSchema.parse(data)
+  const factor = 1 + validated.pricePercentageChange / 100
 
-  // Actualización masiva directa en la base de datos
-  await prisma.$executeRaw`
-    UPDATE "Product"
-    SET "price" = "price" * ${factor}
-    WHERE "category" = ${validated.category} AND "isDeleted" = false
-  `;
+  const updated = await prisma.product.updateMany({
+    where: {
+      category: validated.category,
+      isDeleted: false,
+    },
+    data: {
+      price: { multiply: factor },
+    },
+  })
 
-  revalidatePath('/dashboard/products');
-  return { success: true };
+  await prisma.product.updateMany({
+    where: {
+      category: validated.category,
+      isDeleted: false,
+      price: { lt: 0.01 },
+    },
+    data: { price: 0.01 },
+  })
+
+  revalidatePath('/dashboard/products')
+  return { success: true, updated: updated.count }
 }
 
-// --------------------------------------------------------------------------
-// TAREA 5: Borrado Seguro (Soft Delete)
-// --------------------------------------------------------------------------
 export async function softDeleteProduct(id: string) {
   await prisma.product.update({
     where: { id },
     data: {
       isDeleted: true,
     },
-  });
+  })
 
-  revalidatePath('/dashboard/products');
-  return { success: true };
+  revalidatePath('/dashboard/products')
+  return { success: true }
 }
 
-// --------------------------------------------------------------------------
-// Para la Prueba E2E (Creación de Producto)
-// --------------------------------------------------------------------------
 export async function createProduct(data: unknown) {
-  const validated = ProductSchema.parse(data);
+  const validated = ProductSchema.parse(data)
 
   const product = await prisma.product.create({
     data: {
@@ -113,11 +110,11 @@ export async function createProduct(data: unknown) {
       price: validated.price,
       stock: validated.stock,
     },
-  });
+  })
 
-  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/products')
   return {
     ...product,
     price: Number(product.price),
-  };
+  }
 }

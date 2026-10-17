@@ -1,6 +1,7 @@
 import { getPaginatedProducts } from '@/lib/actions/product.actions';
 import ProductTable from '@/components/ProductTable';
 import BulkUpdateModal from '@/components/BulkUpdateModal';
+import { ProductCreateForm } from '@/components/product-forms';
 
 interface PageProps {
   searchParams: Promise<{
@@ -44,6 +45,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         <BulkUpdateModal />
       </div>
 
+      <ProductCreateForm />
       <ProductTable data={data} />
     </main>
   );
