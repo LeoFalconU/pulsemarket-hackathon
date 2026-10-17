@@ -32,7 +32,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const started = performance.now()
   const [catalog, tasks, salesAgg, customersCount, productsCount, recentSales, stockProducts, ...dailyAggregates] = await Promise.all([
     listProductsPaged(query),
-    prisma.kanbanTask.findMany({ orderBy: [{ status: 'asc' }, { position: 'asc' }] }),
+    prisma.kanbanTask.findMany({
+      orderBy: [{ status: 'asc' }, { position: 'asc' }],
+      take: 100,
+    }),
     prisma.sale.aggregate({ _sum: { total: true }, _count: { _all: true } }),
     prisma.customer.count(),
     prisma.product.count({ where: { isDeleted: false } }),
