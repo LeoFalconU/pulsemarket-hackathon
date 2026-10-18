@@ -11,7 +11,7 @@ import {
 import { revalidatePath } from 'next/cache'
 import { getAuthSession } from '@/lib/session'
 
-async function requireAuthenticatedSession() {
+async function requireAuthenticatedSession(): Promise<void> {
   if (!(await getAuthSession())) {
     throw new Error('No autorizado')
   }
@@ -24,21 +24,27 @@ export async function getPaginatedProducts(params: QueryProductInput) {
   const { page, limit, search, category, sortBy, sortOrder } = validated
   const skip = (page - 1) * limit
 
+  // 1. Definimos el 'where' con su tipo estricto, incluyendo solo la condición por defecto
   const where: Prisma.ProductWhereInput = {
     isDeleted: false,
-    ...(category && category !== 'ALL' ? { category } : {}),
-    ...(search && search.trim() !== ''
-      ? {
-          name: {
-            contains: search.trim(),
-            mode: 'insensitive',
-          },
-        }
-      : {}),
   }
 
+  // 2. Agregamos propiedades dinámicamente de forma estricta (evita los problemáticos spreads `{...}`)
+  if (category && category !== 'ALL') {
+    where.category = category
+  }
+
+  const cleanSearch = search?.trim()
+  if (cleanSearch) {
+    where.name = {
+      contains: cleanSearch,
+      mode: 'insensitive',
+    }
+  }
+
+  // 3. Tipado estricto para las llaves del orderBy
   const orderBy: Prisma.ProductOrderByWithRelationInput = {
-    [sortBy]: sortOrder,
+    [sortBy as keyof Prisma.ProductOrderByWithRelationInput]: sortOrder,
   }
 
   const [products, total] = await Promise.all([
@@ -80,7 +86,7 @@ export async function bulkUpdateCategoryPrices(data: unknown) {
     where: {
       category: validated.category,
       isDeleted: false,
-    },
+    } satisfies Prisma.ProductWhereInput, // Usamos 'satisfies' para doble seguridad sin perder la inferencia
     data: {
       price: { multiply: factor },
     },
@@ -91,7 +97,7 @@ export async function bulkUpdateCategoryPrices(data: unknown) {
       category: validated.category,
       isDeleted: false,
       price: { lt: 0.01 },
-    },
+    } satisfies Prisma.ProductWhereInput,
     data: { price: 0.01 },
   })
 

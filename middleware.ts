@@ -7,5 +7,6 @@ export default withAuth({
 })
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  // Se protegen explícitamente tanto la ruta principal como cualquier subruta
+  matcher: ['/dashboard', '/dashboard/:path*'],
 }

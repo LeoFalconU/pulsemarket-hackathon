@@ -1,8 +1,17 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { SignOutButton } from '@/components/sign-out-button'
+import { getAuthSession } from '@/lib/session'
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  // Verificación de sesión a nivel de layout
+  const session = await getAuthSession()
+  
+  if (!session) {
+    redirect('/login')
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 md:flex">
       <aside className="border-b border-zinc-200/80 bg-white/85 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/85 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col md:border-b-0 md:border-r">
