@@ -7,11 +7,11 @@ export const authOptions: NextAuthOptions = {
   providers: [
     ...(authProviders.github && env.GITHUB_ID && env.GITHUB_SECRET
       ? [
-          GithubProvider({
-            clientId: env.GITHUB_ID,
-            clientSecret: env.GITHUB_SECRET,
-            issuer: 'https://github.com',
-          }),
+GithubProvider({
+  clientId: env.GITHUB_ID,
+  clientSecret: env.GITHUB_SECRET,
+  issuer: 'https://github.com/login/oauth',
+}),
         ]
       : []),
     ...(authProviders.google && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
