@@ -10,6 +10,7 @@ export const authOptions: NextAuthOptions = {
           GithubProvider({
             clientId: env.GITHUB_ID,
             clientSecret: env.GITHUB_SECRET,
+            issuer: 'https://github.com',
           }),
         ]
       : []),
