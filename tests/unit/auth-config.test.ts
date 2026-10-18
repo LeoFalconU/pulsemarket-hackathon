@@ -19,7 +19,7 @@ describe('OAuth provider configuration', () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: 'github',
-          options: expect.objectContaining({ issuer: 'https://github.com' }),
+          options: expect.objectContaining({ issuer: 'https://github.com/login/oauth' }),
         }),
       ]),
     )
