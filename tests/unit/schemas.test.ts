@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { kanbanMoveSchema } from '@/lib/validations/kanban'
+import {
+  kanbanCreateSchema,
+  kanbanDeleteSchema,
+  kanbanMoveSchema,
+  kanbanUpdateSchema,
+} from '@/lib/validations/kanban'
 import { bulkPriceUpdateSchema, productCreateSchema, productQuerySchema } from '@/lib/validations/product'
 
 describe('DTOs Zod', () => {
@@ -37,6 +42,24 @@ describe('DTOs Zod', () => {
       position: 0,
     })
     expect(parsed.status).toBe('DONE')
+  })
+
+  it('valida y normaliza el título al crear una tarjeta Kanban', () => {
+    const parsed = kanbanCreateSchema.parse({ title: '  Revisar inventario  ' })
+    expect(parsed.title).toBe('Revisar inventario')
+  })
+
+  it('rechaza títulos Kanban demasiado largos', () => {
+    const parsed = kanbanCreateSchema.safeParse({ title: 'x'.repeat(121) })
+    expect(parsed.success).toBe(false)
+  })
+
+  it('valida la edición y el borrado de tarjetas Kanban', () => {
+    expect(kanbanUpdateSchema.parse({ id: 'task_1', title: 'Actualizar inventario' }).id).toBe(
+      'task_1',
+    )
+    expect(kanbanDeleteSchema.parse({ id: 'task_1' }).id).toBe('task_1')
+    expect(kanbanDeleteSchema.safeParse({ id: '' }).success).toBe(false)
   })
 
   it('valida un bulk update de precios', () => {

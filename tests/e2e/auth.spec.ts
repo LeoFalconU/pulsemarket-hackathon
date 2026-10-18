@@ -2,6 +2,13 @@ import { test, expect } from '@playwright/test'
 import { signInTestUser } from './helpers/auth'
 
 test.describe('Flujo 1: Seguridad y Autenticación', () => {
+  test('La página inicial lleva directamente al inicio de sesión', async ({ page }) => {
+    await page.goto('/')
+    await expect(page).toHaveURL(/.*\/login/)
+    await expect(page.getByTestId('login-google')).toBeVisible()
+    await expect(page.getByTestId('login-github')).toBeVisible()
+  })
+
   test('Redirección del Middleware: Protege el acceso al dashboard', async ({ page }) => {
     // Intentamos ir a una ruta protegida sin estar logueados
     await page.goto('/dashboard')

@@ -29,9 +29,36 @@ To learn more about Next.js, take a look at the following resources:
 
 ## Base de datos y seed
 
-El seed elimina y vuelve a crear registros. Solo se ejecuta si `DATABASE_URL` apunta a
-`localhost`, `127.0.0.1` o `::1`; usa una base local aislada y nunca la conexión compartida
-de Railway. No guardes credenciales de base de datos en el repositorio.
+`npm run prisma:seed` es destructivo: elimina y vuelve a crear registros. Solo se ejecuta si
+`DATABASE_URL` apunta a `localhost`, `127.0.0.1` o `::1`; úsalo en una base local aislada,
+nunca en Railway ni en otra base compartida.
+
+Para cumplir el requisito de volumen en una base de demo remota aislada, existe
+`npm run prisma:seed:demo`. Este comando es aditivo e idempotente: inserta 10,000 productos,
+4,000 ventas relacionadas, 250 clientes y 7 tareas, usando IDs deterministas y omitiendo filas
+ya insertadas. No borra ni reemplaza datos existentes. Requiere que primero se aplique la
+migración y que se configuren explícitamente una URL de base de demo remota y una frase de
+confirmación en la terminal:
+
+```bash
+export PULSEMARKET_DEMO_DATABASE_URL='URL_DE_LA_BASE_DEMO_AISLADA'
+export PULSEMARKET_DEMO_SEED_CONFIRM='INSERT_DEMO_DATA_NON_DESTRUCTIVELY'
+npm run prisma:seed:demo
+unset PULSEMARKET_DEMO_DATABASE_URL PULSEMARKET_DEMO_SEED_CONFIRM
+```
+
+En PowerShell:
+
+```powershell
+$env:PULSEMARKET_DEMO_DATABASE_URL = 'URL_DE_LA_BASE_DEMO_AISLADA'
+$env:PULSEMARKET_DEMO_SEED_CONFIRM = 'INSERT_DEMO_DATA_NON_DESTRUCTIVELY'
+npm.cmd run prisma:seed:demo
+Remove-Item Env:PULSEMARKET_DEMO_DATABASE_URL, Env:PULSEMARKET_DEMO_SEED_CONFIRM
+```
+
+No guardes las credenciales de base de datos en el repositorio ni las pegues en chats o logs.
+No ejecutes el seed de demo contra la base compartida del equipo; usa un servicio/base Railway
+aislado para la demostración.
 
 ## Despliegue en Vercel con PostgreSQL
 
@@ -48,9 +75,10 @@ fallarían. Antes de probar el sistema desplegado, configura todos los valores e
 apunta `DATABASE_URL` a una base de pruebas aislada, no a la base compartida.
 
 La instalación y el build generan el cliente Prisma, pero no ejecutan migraciones ni seed.
-Aplica `npx prisma migrate deploy` de forma controlada contra la base de destino antes de
-desplegar el código que requiera esas migraciones. Nunca ejecutes `prisma:seed` contra
-producción o contra una base compartida.
+Aplica `npm run prisma:migrate` de forma controlada contra la base de destino antes de
+desplegar el código que requiera esas migraciones. Nunca ejecutes el seed local destructivo
+contra producción o contra una base compartida. El seed remoto de demo tampoco debe ejecutarse
+contra producción.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
