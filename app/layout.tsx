@@ -1,4 +1,6 @@
+
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Providers } from '@/components/providers'
 import './globals.css'
@@ -18,7 +20,11 @@ export const metadata: Metadata = {
   description: 'Dashboard de analítica e-commerce en tiempo real',
 }
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode
+}) {
   return (
     <html
       lang="es"

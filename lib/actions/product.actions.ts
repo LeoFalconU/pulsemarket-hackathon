@@ -1,3 +1,4 @@
+
 'use server'
 
 import { Prisma } from '@prisma/client'
@@ -19,7 +20,7 @@ async function requireAuthenticatedSession() {
 
 export async function getPaginatedProducts(params: QueryProductInput) {
   await requireAuthenticatedSession()
-  const startedAt = performance.now()
+
   const validated = QueryProductSchema.parse(params)
   const { page, limit, search, category, sortBy, sortOrder } = validated
   const skip = (page - 1) * limit
@@ -41,6 +42,9 @@ export async function getPaginatedProducts(params: QueryProductInput) {
     [sortBy]: sortOrder,
   }
 
+  // Medir el tiempo de las consultas reales a Prisma.
+  const startedAt = performance.now()
+
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
@@ -59,6 +63,8 @@ export async function getPaginatedProducts(params: QueryProductInput) {
     prisma.product.count({ where }),
   ])
 
+  const durationMs = Math.round(performance.now() - startedAt)
+
   return {
     products: products.map((product) => ({
       ...product,
@@ -67,12 +73,13 @@ export async function getPaginatedProducts(params: QueryProductInput) {
     total,
     totalPages: Math.ceil(total / limit),
     currentPage: page,
-    durationMs: Math.round(performance.now() - startedAt),
+    durationMs,
   }
 }
 
 export async function bulkUpdateCategoryPrices(data: unknown) {
   await requireAuthenticatedSession()
+
   const validated = BulkUpdateSchema.parse(data)
   const factor = 1 + validated.pricePercentageChange / 100
 
@@ -96,11 +103,13 @@ export async function bulkUpdateCategoryPrices(data: unknown) {
   })
 
   revalidatePath('/dashboard/products')
+
   return { success: true, updated: updated.count }
 }
 
 export async function softDeleteProduct(id: string) {
   await requireAuthenticatedSession()
+
   await prisma.product.update({
     where: { id },
     data: {
@@ -109,11 +118,13 @@ export async function softDeleteProduct(id: string) {
   })
 
   revalidatePath('/dashboard/products')
+
   return { success: true }
 }
 
 export async function createProduct(data: unknown) {
   await requireAuthenticatedSession()
+
   const validated = ProductSchema.parse(data)
 
   const product = await prisma.product.create({
@@ -126,6 +137,7 @@ export async function createProduct(data: unknown) {
   })
 
   revalidatePath('/dashboard/products')
+
   return {
     ...product,
     price: Number(product.price),
